@@ -473,6 +473,30 @@ jobs:
             echo "KSU_LATEST_COMMIT_DATE=未知" >> $GITHUB_ENV
           fi
 
+      - name: 修复 KernelSU-Next selinux_hide 符号导出（Next + SUSFS）
+        if: inputs.ksu_variant == 'Next' && inputs.enable_susfs
+        working-directory: ${{ env.KERNEL_ROOT }}
+        run: |
+          # 上游 pershoot/KernelSU-Next dev-susfs 的 susfs v2.3.0 提交(1bbf4970)把
+          # 三个 security_*_with_policy 的前向声明改成了 static（kernel/feature/selinux_hide.c
+          # 顶部 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0) 分支），函数定义仍是全局的，
+          # 但编译后符号被收敛为内部链接。而 SUSFS GKI 补丁(50_add_susfs)在
+          # security/selinux/hooks.c 与 selinuxfs.c 中以 extern 引用这三个符号，
+          # 导致 vmlinux 链接期报 undefined symbol（6.6 / 6.12 全矩阵失败）。
+          # 这里去掉三个前向声明的 static，恢复外部链接，与全局定义保持一致。
+          # 仅 Next + SUSFS 组合需要；其他变体不走 KernelSU-Next 目录，不受影响。
+          SELINUX_HIDE="KernelSU-Next/kernel/feature/selinux_hide.c"
+          if [ ! -f "$SELINUX_HIDE" ]; then
+            echo "::warning::未找到 $SELINUX_HIDE，跳过符号导出修复"
+            exit 0
+          fi
+          sed -i -E 's/^static (int security_context_to_sid_with_policy|int security_sid_to_context_with_policy|void security_compute_av_user_with_policy)\(/extern \1(/' "$SELINUX_HIDE"
+          if grep -qE '^static (int security_context_to_sid_with_policy|int security_sid_to_context_with_policy|void security_compute_av_user_with_policy)\(' "$SELINUX_HIDE"; then
+            echo "::error::selinux_hide.c security_*_with_policy 符号导出修复失败，仍存在 static 前向声明"
+            exit 1
+          fi
+          echo "已将 selinux_hide.c 三个 security_*_with_policy 前向声明改为 extern，恢复外部链接"
+
       - name: 修复 SukiSU 内核卸载功能缺失的 setter
         if: inputs.ksu_variant == 'SukiSU'
         working-directory: ${{ env.KERNEL_ROOT }}/KernelSU
