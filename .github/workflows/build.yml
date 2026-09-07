@@ -473,6 +473,18 @@ jobs:
             echo "KSU_LATEST_COMMIT_DATE=未知" >> $GITHUB_ENV
           fi
 
+      # Next 变体（pershoot dev-susfs）在 zygote 派生管理器/已授权应用时会
+      # 关闭其 Seccomp，这里移除相关调用，使其保持过滤模式。
+      - name: 保留管理器 Seccomp 过滤（Next 变体）
+        working-directory: ${{ env.KERNEL_ROOT }}
+        run: |
+          if [ -f "KernelSU-Next/kernel/hook/setuid_hook.c" ]; then
+            sed -i 's|disable_seccomp();|/* keep seccomp filter: manager and allowed apps stay in filter mode */;|g' KernelSU-Next/kernel/hook/setuid_hook.c
+            echo "已移除 setuid_hook.c 中的 disable_seccomp() 调用（共 $(grep -c 'keep seccomp filter' KernelSU-Next/kernel/hook/setuid_hook.c) 处）"
+          else
+            echo "非 Next 变体，跳过 Seccomp 保留补丁"
+          fi
+
       - name: 修复 KernelSU-Next selinux_hide 符号导出（Next + SUSFS）
         if: inputs.ksu_variant == 'Next' && inputs.enable_susfs
         working-directory: ${{ env.KERNEL_ROOT }}
