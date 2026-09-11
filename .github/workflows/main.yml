@@ -40,7 +40,7 @@ on:
           - SukiSU
           - ReSukiSU
           - Official
-          #- Next
+          - Next
         default: ReSukiSU
 
       # ==================== 可选配置 ====================
@@ -76,6 +76,14 @@ on:
         description: "启用 Droidspaces 容器 NTSync 支持（需启用 Droidspaces）"
         type: boolean
         default: false
+      artifact_upload_mode:
+        description: "构建产物上传模式"
+        required: true
+        type: choice
+        options:
+          - "仅上传 AnyKernel3.zip"
+          - "上传全部"
+        default: "仅上传 AnyKernel3.zip"
 
       # ==================== 功能开关 ====================
       use_zram:
@@ -150,7 +158,7 @@ jobs:
       cve_2026_43499_patch: ${{ inputs.cve_2026_43499_patch }}
       cancel_susfs: ${{ inputs.cancel_susfs }}
       droidspaces: ${{ inputs.droidspaces }}
-      artifact_upload_mode: "上传全部"
+      artifact_upload_mode: ${{ inputs.artifact_upload_mode }}
       droidspaces_ntsync: ${{ inputs.droidspaces_ntsync }}
       called_from_main: true
 
@@ -170,7 +178,7 @@ jobs:
       cve_2026_43499_patch: ${{ inputs.cve_2026_43499_patch }}
       cancel_susfs: ${{ inputs.cancel_susfs }}
       droidspaces: ${{ inputs.droidspaces }}
-      artifact_upload_mode: "上传全部"
+      artifact_upload_mode: ${{ inputs.artifact_upload_mode }}
       droidspaces_ntsync: ${{ inputs.droidspaces_ntsync }}
       called_from_main: true
 
@@ -190,7 +198,7 @@ jobs:
       cve_2026_43499_patch: ${{ inputs.cve_2026_43499_patch }}
       cancel_susfs: ${{ inputs.cancel_susfs }}
       droidspaces: ${{ inputs.droidspaces }}
-      artifact_upload_mode: "上传全部"
+      artifact_upload_mode: ${{ inputs.artifact_upload_mode }}
       droidspaces_ntsync: ${{ inputs.droidspaces_ntsync }}
       called_from_main: true
 
@@ -210,7 +218,7 @@ jobs:
       cve_2026_43499_patch: ${{ inputs.cve_2026_43499_patch }}
       cancel_susfs: ${{ inputs.cancel_susfs }}
       droidspaces: ${{ inputs.droidspaces }}
-      artifact_upload_mode: "上传全部"
+      artifact_upload_mode: ${{ inputs.artifact_upload_mode }}
       droidspaces_ntsync: ${{ inputs.droidspaces_ntsync }}
       called_from_main: true
 
@@ -230,7 +238,7 @@ jobs:
       cve_2026_43499_patch: ${{ inputs.cve_2026_43499_patch }}
       cancel_susfs: ${{ inputs.cancel_susfs }}
       droidspaces: ${{ inputs.droidspaces }}
-      artifact_upload_mode: "上传全部"
+      artifact_upload_mode: ${{ inputs.artifact_upload_mode }}
       droidspaces_ntsync: ${{ inputs.droidspaces_ntsync }}
       called_from_main: true
 
@@ -356,7 +364,7 @@ jobs:
   # 当 release_type 不是 Actions 时，创建 GitHub Release
   # 仅限原仓库运行，fork 仓库跳过此步骤
   release:
-    if: ${{ always() && !cancelled() && inputs.release_type != 'Actions' && github.repository == 'zzh20188/GKI_KernelSU_SUSFS' }}
+    if: ${{ always() && !cancelled() && inputs.release_type != 'Actions' && github.repository == 'LingLuo17/GKI_KernelSU_SUSFS' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -601,7 +609,7 @@ jobs:
           |:---|:---|
           | \`*_kernel-*.zip\` | AnyKernel3 内核刷入包 |
           | \`*.img\` | boot、vendor_boot 等镜像文件 |
-          | \`*.apk\` | KernelSU 管理器 |
+          | \`*.apk\` | Root 管理器 |
           | \`susfs-*.zip\` | SUSFS 配套模块 |
 
           > [!IMPORTANT]
@@ -619,7 +627,7 @@ jobs:
 
           1. 恢复原厂 Boot 镜像
           2. 使用 KernelSU 管理器或 recovery 提取日志
-          3. 提交到 [Issues](https://github.com/zzh20188/GKI_KernelSU_SUSFS/issues)，并附上设备型号、Android 版本、内核版本和刷入文件名
+          3. 提交到 [Issues](https://github.com/LingLuo17/GKI_KernelSU_SUSFS/issues)，并附上设备型号、Android 版本、内核版本和刷入文件名
 
           </details>
 
@@ -640,7 +648,7 @@ jobs:
 
           推荐模块：https://github.com/sidex15/ksu_module_susfs
 
-          Unicode 零宽绕过修复请使用 Xposed 模块：https://t.me/real5ec1cff/268
+          Unicode 零宽绕过修复请使用 Xposed 模块：https://github.com/5ec1cff/FuseFixer
           EOF
 
       # ==================== 生成版本标签 ====================
